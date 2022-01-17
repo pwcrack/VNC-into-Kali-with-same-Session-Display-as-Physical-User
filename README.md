@@ -1,7 +1,6 @@
 # VNC INTO KALI WITH THE SAME SESSION/DISPLAY AS THE PHYSICAL USER
 
-If you run VNC as service (e.g. x11vnc) on Linux and connect it to Display :0 (the Physical Display) and make it available on port 5900 (the default port), everything will work fine until the screen is locked at which point the VNC Connection will go Black.  Below is a detailed explanation and instructions for installing and using VNC to connect to the actual physical session and display of the physical user on debian linux.  I did this using Kali Linux 2021.4a, but this should work on a wide variety of Debian distros include Ubuntu, etc.  Kali Linux uses LightDM as its Display Manager and for part of these instructions I make use of LightDM functionality.  Therefore, as a pre-requisite, if you are not using LightDM, you may have to slightly modify these instructions for your Display Manager (Gnome Display Manager/GDM, etc.) or change your Display Manager to LightDM (there are instructions for doing that elsewhere on the internet.)  I am using x11vnc as my vncserver.  Xvnc, TightVNC, TIgerVNC and other VNC servers should also work as long as they offer the capability to specify a display (i.e. :0 or :1).
-This is not totally "a solution.”  It is a bit of a work-around because it will require you to VNC into two different ports to complete the normal unlock process.
+If you run VNC as service (e.g. x11vnc) on Linux and connect it to Display :0 (the Physical Display) and make it available on port 5900 (the default port), everything will work fine until the screen is locked at which point the VNC Connection will go Black.  Below is a detailed explanation and instructions for installing and using VNC to connect to the actual physical session and display of the physical user on debian linux.  I did this using Kali Linux 2021.4a, but this should work on a wide variety of Debian distros include Ubuntu, etc.  I am using x11vnc as my vncserver.  Xvnc, TightVNC, TIgerVNC and other VNC servers should also work as long as they offer the capability to specify a display (i.e. :0 or :1).  This is not totally "a solution.”  It is a bit of a work-around because it will require you to VNC into two different ports to complete the normal unlock process.
 
 # THE PROBLEM:
 
@@ -21,7 +20,8 @@ However, If we lock the session through VNC or on the physical desktop, the VNC 
 
 # THE WORKAROUND:
 
-Assuming we already have a VNC service for Display :0 available on port 5900, let’s make a second VNC service connected to Display :1 and available on port 5901.  If the machine has been freshly rebooted, we can VNC connect to 5900, login and then work the desktop remotely.  However, if we lock the desktop, the screen will go Black.  To log back in we need to connect to port 5901.  However, there is a second issue.  When LightDM creates the new Session for the login gui on Display :1, the service (which we will enable to run at boot) doesn’t recognize it.  We need to restart the service each time this happens.  We can do this by adding a line to the [Seat:*] section of the LightDM configuration.  With this done, we’ll be able to VNC into port 5901 and unlock the locked physical session on the desktop.  When we do this the LightDM Display Manager will make the physical desktop display available again on port 5900 and we can VNC back into it on that port.  We will lose our VNC connection on port 5901, but we can reconnect on port 5900 and see our gui physical desktop on display :0.  Actions taken by a physical user sitting at the machine will be analogous and will not affect the VNC set-up.  I am going to provide detailed instructions on how to set up a VNC password (separate from the user login) and to tunnel over SSH for additional security.  Typically, my machines are local only IP addresses and I VNC from other local machines on the same network.  When I am physically remote, I VPN into the local network.  In that situation I would be tunneling password-protected (but unencrypted) VNC over SSH and tunneling that over a VPN.
+Assuming we already have a VNC service for Display :0 available on port 5900, let’s make a second VNC service connected to Display :1 and available on port 5901.  If the machine has been freshly rebooted, we can VNC connect to 5900, login and then work the desktop remotely.  However, if we lock the desktop, the screen will go Black.  To log back in we need to connect to port 5901.  However, there is a second issue.  The second service we will create (X11vnc1) fails when there is no Display :1 to attach to.  We need to monitor dbus for the locking event and restart this service each time this happens.  With this done, we’ll be able to VNC into port 5901 and unlock the locked physical session on the desktop.  When we do this the LightDM Display Manager will make the physical desktop display available again on port 5900 and we can VNC back into it on that port.  We will lose our VNC connection on port 5901, but we can reconnect on port 5900 and see our gui physical desktop on display :0.  Actions taken by a physical user sitting at the machine will be analogous and will not affect the VNC set-up.  I am going to provide detailed instructions on how to set up a VNC password (separate from the user login) and to tunnel over SSH for additional security.  Typically, my machines are local only IP addresses and I VNC from other local machines on the same network.  When I am physically remote, I VPN into the local network.  In that situation I would be tunneling password-protected (but unencrypted) VNC over SSH and tunneling that over a VPN.
+
 # PUTTING IT TOGETHER STEP-BY-STEP:
 
 1.	Install x11vnc
@@ -91,21 +91,19 @@ sudo systemctl enable x11vnc1<br/>
 
 With your system still unlocked, from a second system you can test your set-up again by connecting over VNC on port 5900 and you should still be prompted for your VNC password and you should then be able to see your physical desktop.
 
-7.	Modify LightDM Configuration
+7.	Monitor dbus for locking event and restart x11vnc1 service when that happens
 
-sudo nano /etc/lightdm/lightdm.conf
+Add a line to Sudo crontab
 
-in the [Seat:*] section find the line that currently reads:  “#display-setup-script=” and uncomment it and change it to:
+sudo crontab -e
 
-display-setup-script=sudo service x11vnc restart
+Add the following line to sudo crontab:
 
-8.	Restart LightDM
+@reboot bash -c 'dbus-monitor --system "type='signal',sender='org.freedesktop.login1',path='/org/freedesktop/login1/seat/seat0',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'" | grep --line-buffered "ActiveSession" | while read line; do sudo service x11vnc1 restart; done'
 
-Be careful with this next command.  This is like a reboot and will close all your open windows and force a login.  Make sure to save any open work before you run this command.
+8.	Reboot
 
-sudo service lightdm restart
-
-You should now be ready to test your remote VNC connection.  Since you just restarted lightdm, from a remote machine you can connect to VNC on port 5900.  You should see your physical login screen.  As you login over VNC you should be able to see the same login on the physical machine.  If you lock your session (in VNC or physically) the VNC screen should go to Black.  When this happens disconnect from VNC.  To restore your VNC session, create a VNC connection to your machine on port 5901.  You will be prompted for you VNC password.  You will then see the physical login screen.  Login and as you complete the login VNC will disconnect.  The physical machine will have its desktop unlocked and you can now connect to the desktop through VNC on port 5900 again.
+You should now be ready to test your remote VNC connection.  From a remote machine you can connect to VNC on port 5900.  You should see your physical login screen.  As you login over VNC you should be able to see the same login on the physical machine.  If you lock your session (in VNC or physically) the VNC screen should go to Black.  When this happens disconnect from VNC.  To restore your VNC session, create a VNC connection to your machine on port 5901.  You will be prompted for you VNC password.  You will then see the physical login screen.  Login and as you complete the login VNC will disconnect.  The physical machine will have its desktop unlocked and you can now connect to the desktop through VNC on port 5900 again.
 
 To tunnel VNC over ssh, from linux first create the tunnels:
  
