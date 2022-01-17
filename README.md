@@ -47,47 +47,47 @@ You will be prompted for the VNC password.  You should then see your physical de
 
 Using sudo create this file:  /etc/systemd/system/x11vnc.service with the following content:
 
-[Unit]
-Description="x11vnc"
-Requires=display-manager.service
-After=display-manager.service
-
-[Service]
-ExecStart=/usr/bin/x11vnc -create -xkb -display :0 -noxrecord -noxfixes -noxdamage -o /var/log/x11vnc.log -rfbauth /home/diskun/.vnc/passwd -usepw -auth guess -forever
-ExecStop=/usr/bin/killall x11vnc
-Restart=on-failure
-Restart-sec=200
-
-[Install]
-WantedBy=multi-user.target
+[Unit]<br/>
+Description="x11vnc"<br/>
+Requires=display-manager.service<br/>
+After=display-manager.service<br/>
+<br/>
+[Service]<br/>
+ExecStart=/usr/bin/x11vnc -create -xkb -display :0 -noxrecord -noxfixes -noxdamage -o /var/log/x11vnc.log -rfbauth /home/diskun/.vnc/passwd -usepw -auth guess -forever<br/>
+ExecStop=/usr/bin/killall x11vnc<br/>
+Restart=on-failure<br/>
+Restart-sec=200<br/>
+<br/>
+[Install]<br/>
+WantedBy=multi-user.target<br/>
 
 5.	Make a second service (note this service is a little bit different from the first.  The filename is different, the Description is different and the ExecStart command now includes “display :1 -rfbport 5901” to make display :1 available as a service on port 5901.
 
 Using sudo create this second file (note the filename change):  /etc/systemd/system/x11vnc1.service with the following content:
 
-[Unit]
-Description="x11vnc1"
-Requires=display-manager.service
-After=display-manager.service
-
-[Service]
-ExecStart=/usr/bin/x11vnc -create -xkb -display :1 -rfbport 5901-noxrecord -noxfixes -noxdamage -o /var/log/x11vnc.log -rfbauth /home/diskun/.vnc/passwd -usepw -auth guess -forever
-ExecStop=/usr/bin/killall x11vnc
-Restart=on-failure
-Restart-sec=200
-
-[Install]
-WantedBy=multi-user.target
+[Unit]<br/>
+Description="x11vnc1"<br/>
+Requires=display-manager.service<br/>
+After=display-manager.service<br/>
+<br/>
+[Service]<br/>
+ExecStart=/usr/bin/x11vnc -create -xkb -display :1 -rfbport 5901-noxrecord -noxfixes -noxdamage -o /var/log/x11vnc.log -rfbauth /home/diskun/.vnc/passwd -usepw -auth guess -forever<br/>
+ExecStop=/usr/bin/killall x11vnc<br/>
+Restart=on-failure<br/>
+Restart-sec=200<br/>
+<br/>
+[Install]<br/>
+WantedBy=multi-user.target<br/>
 
 6.	Start and enable both services
 
-sudo systemctl daemon-reload
-sudo systemctl startx11vnc
-sudo systemctl statusx11vnc
-sudo systemctl startx11vnc1
-sudo systemctl status x11vnc1
-sudo systemctl enable x11vnc
-sudo systemctl enable x11vnc1
+sudo systemctl daemon-reload<br/>
+sudo systemctl startx11vnc<br/>
+sudo systemctl statusx11vnc<br/>
+sudo systemctl startx11vnc1<br/>
+sudo systemctl status x11vnc1<br/>
+sudo systemctl enable x11vnc<br/>
+sudo systemctl enable x11vnc1<br/>
 
 With your system still unlocked, from a second system you can test your set-up again by connecting over VNC on port 5900 and you should still be prompted for your VNC password and you should then be able to see your physical desktop.
 
