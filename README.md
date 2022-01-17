@@ -9,15 +9,15 @@ Why is this even a problem?  When you VNC into a Windows machine (assuming a VNC
 
 After fresh reboot, LightDM GUI login screen is available on Display :0.  The LightDM user session in this example is: c12.  Session 23 is the ssh connection I am using to show these commands (there is no display attached to the ssh session, but you can test that by running the same command and giving the ssh session ID.)
 
-![Screenshot 1](/relative/path/to/img.jpg?raw=true "Screenshot 1")
+![Screenshot 1](/Capture1.PNG?raw=true "Screenshot 1")
 
 Assuming we have set-up a VNC service, we can VNC connect on port 5900 and we will see the login screen and be able to login to the physical desktop display.  We now have user session (ID = 30) with Display :0 and this display will still be available on port 5900 (so we will see this in our VNC connection.)
 
-![Screenshot 2](/relative/path/to/img.jpg?raw=true "Screenshot 2")
+![Screenshot 2](/Capture2.PNG?raw=true "Screenshot 2")
 
 However, If we lock the session through VNC or on the physical desktop, the VNC connection will go to a Black screen.  We can disconnect it (but it doesn’t automatically disconnect or drop the connection.)  Display :0 is still there and we still have a VNC service connected to it, but we can’t see anything because of the Display Manager (LightDM.)  If we were to reconnect VNC to port 5900, we would still see the Black screen.  The Display Manager (LightDM) has spawned a new session (c13) on Display :1 for the new login GUI.  We can see this below and our goal will be to connect to this session/display.
 
-![Screenshot 3](/relative/path/to/img.jpg?raw=true "Screenshot 3")
+![Screenshot 3](/Capture3.PNG?raw=true "Screenshot 3")
 
 # THE WORKAROUND:
 
@@ -115,4 +115,4 @@ You will be prompted for your ssh login password.  Then VNC connect to localhost
 
 On Windows, in PuTTY, create an SSH session with the remote IP to your linux box on port 22 and then in the Connection category, expand SSH and click on Tunnels.  Add the following two tunnels to your SSH connection (changing remoteIP to the IP address of the remote box you are connecting to.)  You will be prompted for your SSH login.  Once connected, VNC to localhost:5900 or localhost:5901 as appropriate, depending upon whether you have just rebooted or you are unlocking a previously locked session.  You will be prompted for your VNC password.
 
-![Screenshot 4](/relative/path/to/img.jpg?raw=true "Screenshot 4")
+![Screenshot 4](/Capture4.PNG?raw=true "Screenshot 4")
