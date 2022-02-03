@@ -82,9 +82,9 @@ WantedBy=multi-user.target<br/>
 6.	Start and enable both services
 
 sudo systemctl daemon-reload<br/>
-sudo systemctl startx11vnc<br/>
-sudo systemctl statusx11vnc<br/>
-sudo systemctl startx11vnc1<br/>
+sudo systemctl start x11vnc<br/>
+sudo systemctl status x11vnc<br/>
+sudo systemctl start x11vnc1<br/>
 sudo systemctl status x11vnc1<br/>
 sudo systemctl enable x11vnc<br/>
 sudo systemctl enable x11vnc1<br/>
