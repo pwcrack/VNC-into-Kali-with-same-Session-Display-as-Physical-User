@@ -79,7 +79,7 @@ Restart-sec=200<br/>
 [Install]<br/>
 WantedBy=multi-user.target<br/>
 
-6.	Start and enable both services
+6.	Start and enable both services (Note: the x11vnc1 service will not start.  This is fine, we're going to handle that later.)
 
 sudo systemctl daemon-reload<br/>
 sudo systemctl start x11vnc<br/>
